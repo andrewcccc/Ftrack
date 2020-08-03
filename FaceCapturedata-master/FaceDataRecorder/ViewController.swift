@@ -14,7 +14,6 @@ import Foundation
 import AVFoundation
 
 class ViewController: UIViewController, ARSessionDelegate {
-    
     @IBOutlet weak var sceneView: ARSCNView!  // Main view
     @IBOutlet weak var Start: UIButton!
     @IBOutlet weak var Change: UIButton!
@@ -22,6 +21,8 @@ class ViewController: UIViewController, ARSessionDelegate {
     @IBOutlet weak var Textfield: UITextView!
     
     private let ini = UserDefaults.standard  // Store user setting
+
+    var lastPosition: CGPoint?
     
     var session: ARSession {
         return sceneView.session
@@ -140,7 +141,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         guard let data = getFrameData() else {return}
              do {
                  fpsTimer.invalidate() //turn off the timer
-                 var capdata = captureData.map{$0.verticeformatted}.joined(separator:"\(newPosition)")
+                 var capdata = captureData.map{$0.verticeformatted}.joined(separator:"\(lastPosition)")
                  let dir: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last! as URL
                  let url = dir.appendingPathComponent("testing.txt")
                  try capdata.appendLineToURL(fileURL: url as URL)
@@ -191,8 +192,7 @@ extension ViewController: ARSCNViewDelegate {
             let vertex = sceneView.projectPoint(node.convertPosition(SCNVector3(vertex), to: nil))
             let xVertex = CGFloat(vertex.x)
             let yVertex = CGFloat(vertex.y)
-            let newPosition = CGPoint(x: xVertex, y: yVertex)
-        print(newPosition)
+            lastPosition = CGPoint(x: xVertex, y: yVertex)
         }
         selectedContentController.session = sceneView.session
         selectedContentController.sceneView = sceneView
