@@ -140,7 +140,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         guard let data = getFrameData() else {return}
              do {
                  fpsTimer.invalidate() //turn off the timer
-                 var capdata = captureData.map{$0.verticeformatted}.joined(separator:"")
+                 var capdata = captureData.map{$0.verticeformatted}.joined(separator:"\(newPosition)")
                  let dir: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last! as URL
                  let url = dir.appendingPathComponent("testing.txt")
                  try capdata.appendLineToURL(fileURL: url as URL)
@@ -186,6 +186,14 @@ extension ViewController: ARSCNViewDelegate {
             let contentNode = selectedContentController.contentNode,
             contentNode.parent == node
             else { return }
+                let vertices = currentFaceAnchor!.geometry.vertices
+        for (index, vertex) in vertices.enumerated() {
+            let vertex = sceneView.projectPoint(node.convertPosition(SCNVector3(vertex), to: nil))
+            let xVertex = CGFloat(vertex.x)
+            let yVertex = CGFloat(vertex.y)
+            let newPosition = CGPoint(x: xVertex, y: yVertex)
+        print(newPosition)
+        }
         selectedContentController.session = sceneView.session
         selectedContentController.sceneView = sceneView
         selectedContentController.renderer(renderer, didUpdate: contentNode, for: anchor)
