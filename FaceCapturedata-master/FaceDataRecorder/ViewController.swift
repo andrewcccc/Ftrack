@@ -23,6 +23,9 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     private let ini = UserDefaults.standard  // Store user setting
     
+    var savedmatrix = [simd_float4x4?]()
+    var beginSaving = false
+    
     var session: ARSession {
         return sceneView.session
     }
@@ -109,6 +112,11 @@ class ViewController: UIViewController, ARSessionDelegate {
         }
     }
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        guard let arCamera = session.currentFrame?.camera else { return }
+              if beginSaving {
+               let ARCameraTransform = arCamera.transform
+               savedmatrix.append(ARCameraTransform)
+               }
     }
     func initARFaceTracking() {
           guard ARFaceTrackingConfiguration.isSupported else { return }
@@ -123,7 +131,10 @@ class ViewController: UIViewController, ARSessionDelegate {
         captureData = []        //create empty array
         currentCaptureFrame = 0 //inital capture frame
         fpsTimer = Timer.scheduledTimer(withTimeInterval: 1/fps, repeats: true, block: {(timer) -> Void in self.recordData()})
+        beginSaving = true
     }
+    
+    
     var x = 0
      var instance = CaptureData(vertices: [
          SIMD3<Float>(x: 0, y: 0, z: 0),
@@ -136,11 +147,14 @@ class ViewController: UIViewController, ARSessionDelegate {
         x = (x == 2) ? 0 : (x + 1)
         Textfield.text = "Method \(x+1)"
     }
+    
+    
     @IBAction func StopTapped(_ sender: Any) {
         guard let data = getFrameData() else {return}
              do {
                  fpsTimer.invalidate() //turn off the timer
-                 var capdata = captureData.map{$0.verticeformatted}.joined(separator:"\(newPosition)")
+                  beginSaving = false
+                 var capdata = captureData.map{$0.verticeformatted}.joined(separator:"\(savedmatrix)")
                  let dir: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last! as URL
                  let url = dir.appendingPathComponent("testing.txt")
                  try capdata.appendLineToURL(fileURL: url as URL)
